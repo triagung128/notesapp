@@ -1,8 +1,9 @@
-package com.triagung.notesapp
+package com.triagung.notesapp.activities
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ImageView
+import com.triagung.notesapp.R
 
 class CreateNoteActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

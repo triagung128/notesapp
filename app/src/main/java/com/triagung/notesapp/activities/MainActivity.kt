@@ -1,9 +1,10 @@
-package com.triagung.notesapp
+package com.triagung.notesapp.activities
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.ImageView
+import com.triagung.notesapp.R
 
 class MainActivity : AppCompatActivity() {
 
