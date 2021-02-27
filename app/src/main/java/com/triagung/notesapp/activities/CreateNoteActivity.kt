@@ -1,32 +1,49 @@
 package com.triagung.notesapp.activities
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.database.Cursor
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.MediaStore
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.triagung.notesapp.R
 import com.triagung.notesapp.database.NotesDatabase
 import com.triagung.notesapp.entities.Note
+import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.Executors
 
 class CreateNoteActivity : AppCompatActivity() {
 
+    companion object {
+        const val REQUEST_CODE_STORAGE_PERMISSION = 1
+        const val REQUEST_CODE_SELECT_IMAGE = 2
+    }
+
     private lateinit var inputNoteTitle: EditText
     private lateinit var inputNoteSubtitle: EditText
     private lateinit var inputNoteText: EditText
     private lateinit var textDateTime: TextView
+    private lateinit var imageNote: ImageView
 
     private lateinit var viewSubtitleIndicator: View
 
     private var selectedNoteColor: String? = null
+    private var selectedImagePath: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +57,7 @@ class CreateNoteActivity : AppCompatActivity() {
         inputNoteText = findViewById(R.id.inputNote)
         textDateTime = findViewById(R.id.textDateTime)
         viewSubtitleIndicator = findViewById(R.id.viewSubtitleIndicator)
+        imageNote = findViewById(R.id.imageNote)
 
         textDateTime.text = SimpleDateFormat(
             "EEEE, dd MMMM yyyy HH:mm a", Locale.getDefault()
@@ -49,6 +67,8 @@ class CreateNoteActivity : AppCompatActivity() {
         imageSave.setOnClickListener { saveNote() }
 
         selectedNoteColor = "#333333"
+
+        setSubtitleIndicatorColor()
 
         initMiscellaneous()
     }
@@ -69,6 +89,7 @@ class CreateNoteActivity : AppCompatActivity() {
         note.noteText = inputNoteText.text.toString()
         note.dateTime = textDateTime.text.toString()
         note.color = selectedNoteColor
+        note.imagePath = selectedImagePath
 
 //        @SuppressLint("StaticFieldLeak")
 //        class SaveNoteTask : AsyncTask<Void, Void, Void>() {
@@ -166,10 +187,78 @@ class CreateNoteActivity : AppCompatActivity() {
             imageColor5.setImageResource(R.drawable.ic_done)
             setSubtitleIndicatorColor()
         }
+
+        layoutMiscellaneous.findViewById<LinearLayout>(R.id.layoutAddImage).setOnClickListener {
+            bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+            if (ContextCompat.checkSelfPermission(
+                    applicationContext, Manifest.permission.READ_EXTERNAL_STORAGE
+            ) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                    REQUEST_CODE_STORAGE_PERMISSION
+                )
+            } else {
+                selectImage()
+            }
+        }
     }
 
     private fun setSubtitleIndicatorColor() {
         val gradientDrawable = viewSubtitleIndicator.background as GradientDrawable
         gradientDrawable.setColor(Color.parseColor(selectedNoteColor))
+    }
+
+    private fun selectImage() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        if (intent.resolveActivity(packageManager) != null) {
+            startActivityForResult(intent, REQUEST_CODE_SELECT_IMAGE)
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_CODE_STORAGE_PERMISSION && grantResults.isNotEmpty()) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                selectImage()
+            } else {
+                Toast.makeText(this, "Permission Denied!", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_CODE_SELECT_IMAGE && resultCode == RESULT_OK) {
+            if (data != null) {
+                val selectedImageUri: Uri? = data.data
+                if (selectedImageUri != null) {
+                    try {
+                        val inputStream: InputStream? = contentResolver.openInputStream(selectedImageUri)
+                        val bitmap: Bitmap = BitmapFactory.decodeStream(inputStream)
+                        imageNote.setImageBitmap(bitmap)
+                        imageNote.visibility = View.VISIBLE
+
+                        selectedImagePath = getPathFromUri(selectedImageUri)
+                    } catch (exception: Exception) {
+                        Toast.makeText(this, exception.message, Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getPathFromUri(contentUri: Uri) : String {
+        val filePath: String
+        val cursor: Cursor? = contentResolver.query(contentUri, null, null, null, null)
+        if (cursor == null) {
+            filePath = contentUri.path.toString()
+        } else {
+            cursor.moveToFirst()
+            val index: Int = cursor.getColumnIndex("_data")
+            filePath = cursor.getString(index)
+            cursor.close()
+        }
+        return filePath
     }
 }

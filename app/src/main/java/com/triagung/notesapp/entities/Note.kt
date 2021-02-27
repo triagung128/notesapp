@@ -23,7 +23,7 @@ data class Note(
     var noteText: String? = null,
 
     @ColumnInfo(name = "image_path")
-    val imagePath: String? = null,
+    var imagePath: String? = null,
 
     @ColumnInfo(name = "color")
     var color: String? = null,
