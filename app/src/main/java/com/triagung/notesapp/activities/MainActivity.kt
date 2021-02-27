@@ -49,7 +49,7 @@ class MainActivity : AppCompatActivity(), NotesListener {
         notesAdapter = NotesAdapter(notesList, this)
         notesRecyclerView.adapter = notesAdapter
 
-        getNotes(REQUEST_CODE_SHOW_NOTES)
+        getNotes(REQUEST_CODE_SHOW_NOTES, false)
     }
 
     override fun onNoteClicked(note: Note, position: Int) {
@@ -60,7 +60,7 @@ class MainActivity : AppCompatActivity(), NotesListener {
         startActivityForResult(intent, REQUEST_CODE_UPDATE_NOTE)
     }
 
-    private fun getNotes(requestCode: Int) {
+    private fun getNotes(requestCode: Int, isNoteDeleted: Boolean) {
 //        @SuppressLint("StaticFieldLeak")
 //        class GetNoteTask : AsyncTask<Void, Void, List<Note>>() {
 //            override fun doInBackground(vararg p0: Void?): List<Note> {
@@ -81,17 +81,25 @@ class MainActivity : AppCompatActivity(), NotesListener {
             val notes = NotesDatabase.getDatabase(applicationContext).noteDao().getAllNotes()
 
             handler.post {
-                if (requestCode == REQUEST_CODE_SHOW_NOTES) {
-                    notesList.addAll(notes)
-                    notesAdapter.notifyDataSetChanged()
-                } else if (requestCode == REQUEST_CODE_ADD_NOTE) {
-                    notesList.add(0, notes[0])
-                    notesAdapter.notifyItemInserted(0)
-                    notesRecyclerView.smoothScrollToPosition(0)
-                } else if (requestCode == REQUEST_CODE_UPDATE_NOTE) {
-                    notesList.removeAt(noteClickedPosition)
-                    notesList.add(noteClickedPosition, notes[noteClickedPosition])
-                    notesAdapter.notifyItemChanged(noteClickedPosition)
+                when (requestCode) {
+                    REQUEST_CODE_SHOW_NOTES -> {
+                        notesList.addAll(notes)
+                        notesAdapter.notifyDataSetChanged()
+                    }
+                    REQUEST_CODE_ADD_NOTE -> {
+                        notesList.add(0, notes[0])
+                        notesAdapter.notifyItemInserted(0)
+                        notesRecyclerView.smoothScrollToPosition(0)
+                    }
+                    REQUEST_CODE_UPDATE_NOTE -> {
+                        notesList.removeAt(noteClickedPosition)
+                        if (isNoteDeleted) {
+                            notesAdapter.notifyItemRemoved(noteClickedPosition)
+                        } else {
+                            notesList.add(noteClickedPosition, notes[noteClickedPosition])
+                            notesAdapter.notifyItemChanged(noteClickedPosition)
+                        }
+                    }
                 }
             }
         }
@@ -101,10 +109,10 @@ class MainActivity : AppCompatActivity(), NotesListener {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == REQUEST_CODE_ADD_NOTE && resultCode == RESULT_OK) {
-            getNotes(REQUEST_CODE_ADD_NOTE)
+            getNotes(REQUEST_CODE_ADD_NOTE, false)
         } else if (requestCode == REQUEST_CODE_UPDATE_NOTE && resultCode == RESULT_OK) {
             if (data != null) {
-                getNotes(REQUEST_CODE_UPDATE_NOTE)
+                getNotes(REQUEST_CODE_UPDATE_NOTE, data.getBooleanExtra("isNotDeleted", false))
             }
         }
     }

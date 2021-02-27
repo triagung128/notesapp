@@ -17,6 +17,7 @@ import android.provider.MediaStore
 import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -51,6 +52,7 @@ class CreateNoteActivity : AppCompatActivity() {
     private var selectedNoteColor: String = "#333333" //Default color note
     private var selectedImagePath: String = ""
     private var dialogAddURL: AlertDialog? = null
+    private var dialogDeleteNote: AlertDialog? = null
     private var alreadyAvailableNote: Note? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -273,6 +275,54 @@ class CreateNoteActivity : AppCompatActivity() {
             bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
             showAddURLDialog()
         }
+
+        if (alreadyAvailableNote != null) {
+            layoutMiscellaneous.findViewById<LinearLayout>(R.id.layoutDeleteNote).visibility = View.VISIBLE
+            layoutMiscellaneous.findViewById<LinearLayout>(R.id.layoutDeleteNote).setOnClickListener {
+                bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+                showDeleteNoteDialog()
+            }
+        }
+    }
+
+    private fun showDeleteNoteDialog() {
+        if (dialogDeleteNote == null) {
+            val builder: AlertDialog.Builder = AlertDialog.Builder(this)
+            val view: View = LayoutInflater
+                .from(this)
+                .inflate(R.layout.layout_delete_note, findViewById(R.id.layoutDeleteNoteContainer))
+
+            builder.setView(view)
+            dialogDeleteNote = builder.create()
+
+            if (dialogDeleteNote?.window != null) {
+                dialogDeleteNote?.window?.setBackgroundDrawable(ColorDrawable(0))
+            }
+
+            view.findViewById<TextView>(R.id.textDeleteNote).setOnClickListener {
+                val executor = Executors.newSingleThreadExecutor()
+                val handler = Handler(Looper.getMainLooper())
+
+                executor.execute {
+                    NotesDatabase.getDatabase(applicationContext)
+                        .noteDao()
+                        .deleteNote(alreadyAvailableNote!!)
+
+                    handler.post {
+                        val intent = Intent()
+                        intent.putExtra("isNotDeleted", true)
+                        setResult(RESULT_OK, intent)
+                        finish()
+                    }
+                }
+            }
+
+            view.findViewById<TextView>(R.id.textCancel).setOnClickListener {
+                dialogDeleteNote?.dismiss()
+            }
+        }
+
+        dialogDeleteNote?.show()
     }
 
     private fun setSubtitleIndicatorColor() {
