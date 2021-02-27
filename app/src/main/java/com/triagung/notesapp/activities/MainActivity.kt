@@ -4,6 +4,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
+import android.widget.EditText
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
@@ -50,6 +53,24 @@ class MainActivity : AppCompatActivity(), NotesListener {
         notesRecyclerView.adapter = notesAdapter
 
         getNotes(REQUEST_CODE_SHOW_NOTES, false)
+
+        val inputSearch = findViewById<EditText>(R.id.inputSearch)
+        inputSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+            }
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                notesAdapter.cancelTimer()
+            }
+
+            override fun afterTextChanged(s: Editable?) {
+                if (notesList.size != 0) {
+                    notesAdapter.searchNotes(s.toString())
+                }
+            }
+
+        })
     }
 
     override fun onNoteClicked(note: Note, position: Int) {
