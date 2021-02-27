@@ -81,6 +81,18 @@ class CreateNoteActivity : AppCompatActivity() {
             setViewOrUpdateNote()
         }
 
+        findViewById<ImageView>(R.id.imageRemoveWebURL).setOnClickListener {
+            textWebURL.text = null
+            layoutWebURL.visibility = View.GONE
+        }
+
+        findViewById<ImageView>(R.id.imageRemoveImage).setOnClickListener {
+            imageNote.setImageBitmap(null)
+            imageNote.visibility = View.GONE
+            findViewById<ImageView>(R.id.imageRemoveImage).visibility = View.GONE
+            selectedImagePath = ""
+        }
+
         initMiscellaneous()
         setSubtitleIndicatorColor()
     }
@@ -96,11 +108,12 @@ class CreateNoteActivity : AppCompatActivity() {
         ) {
             imageNote.setImageBitmap(BitmapFactory.decodeFile(alreadyAvailableNote?.imagePath))
             imageNote.visibility = View.VISIBLE
+            findViewById<ImageView>(R.id.imageRemoveImage).visibility = View.VISIBLE
             selectedImagePath = alreadyAvailableNote?.imagePath!!
         }
 
         if (alreadyAvailableNote?.webLink != null
-            && alreadyAvailableNote?.webLink?.trim()?.isEmpty()!!
+            && alreadyAvailableNote?.webLink?.trim()?.isNotEmpty()!!
         ) {
             textWebURL.text = alreadyAvailableNote?.webLink
             layoutWebURL.visibility = View.VISIBLE
@@ -296,6 +309,7 @@ class CreateNoteActivity : AppCompatActivity() {
                         val bitmap: Bitmap = BitmapFactory.decodeStream(inputStream)
                         imageNote.setImageBitmap(bitmap)
                         imageNote.visibility = View.VISIBLE
+                        findViewById<ImageView>(R.id.imageRemoveImage).visibility = View.VISIBLE
 
                         selectedImagePath = getPathFromUri(selectedImageUri)
                     } catch (exception: Exception) {
