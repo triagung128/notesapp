@@ -29,7 +29,7 @@ data class Note(
     var color: String? = null,
 
     @ColumnInfo(name = "web_link")
-    val webLink: String? = null
+    var webLink: String? = null
 
 ) : Serializable {
 
