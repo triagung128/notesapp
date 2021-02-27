@@ -8,7 +8,7 @@ import java.io.Serializable
 @Entity(tableName = "notes")
 data class Note(
     @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
+    var id: Int = 0,
 
     @ColumnInfo(name = "title")
     var title: String? = null,

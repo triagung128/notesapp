@@ -12,10 +12,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.makeramen.roundedimageview.RoundedImageView
 import com.triagung.notesapp.R
 import com.triagung.notesapp.entities.Note
-import javax.xml.transform.OutputKeys
+import com.triagung.notesapp.listeners.NotesListener
 
-class NotesAdapter(private val notes: List<Note>) : RecyclerView.Adapter<NotesAdapter.NoteViewHolder>() {
-
+class NotesAdapter(private val notes: List<Note>, private val notesListener: NotesListener)
+    : RecyclerView.Adapter<NotesAdapter.NoteViewHolder>()
+{
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NoteViewHolder {
         return NoteViewHolder(LayoutInflater
             .from(parent.context)
@@ -25,15 +26,19 @@ class NotesAdapter(private val notes: List<Note>) : RecyclerView.Adapter<NotesAd
 
     override fun onBindViewHolder(holder: NoteViewHolder, position: Int) {
         holder.setNote(notes[position])
+        holder.layoutNote.setOnClickListener {
+            notesListener.onNoteClicked(notes[position], position)
+        }
     }
 
     override fun getItemCount(): Int = notes.size
 
     inner class NoteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        val layoutNote: LinearLayout = itemView.findViewById(R.id.layoutNote)
+
         private val textTitle: TextView = itemView.findViewById(R.id.textTitle)
         private val textSubtitle: TextView = itemView.findViewById(R.id.textSubtitle)
         private val textDateTime: TextView = itemView.findViewById(R.id.textDateTime)
-        private val layoutNote: LinearLayout = itemView.findViewById(R.id.layoutNote)
         private val imageNote: RoundedImageView = itemView.findViewById(R.id.imageNote)
 
         fun setNote(note: Note) {

@@ -12,18 +12,22 @@ import com.triagung.notesapp.R
 import com.triagung.notesapp.adapters.NotesAdapter
 import com.triagung.notesapp.database.NotesDatabase
 import com.triagung.notesapp.entities.Note
+import com.triagung.notesapp.listeners.NotesListener
 import java.util.concurrent.Executors
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), NotesListener {
 
     companion object {
         const val REQUEST_CODE_ADD_NOTE = 1
+        const val REQUEST_CODE_UPDATE_NOTE = 2
+        const val REQUEST_CODE_SHOW_NOTES = 3
     }
 
     private lateinit var notesRecyclerView: RecyclerView
     private lateinit var notesAdapter: NotesAdapter
 
     private val notesList: ArrayList<Note> = ArrayList()
+    private var noteClickedPosition: Int = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,13 +46,21 @@ class MainActivity : AppCompatActivity() {
             2, StaggeredGridLayoutManager.VERTICAL
         )
 
-        notesAdapter = NotesAdapter(notesList)
+        notesAdapter = NotesAdapter(notesList, this)
         notesRecyclerView.adapter = notesAdapter
 
-        getNotes()
+        getNotes(REQUEST_CODE_SHOW_NOTES)
     }
 
-    private fun getNotes() {
+    override fun onNoteClicked(note: Note, position: Int) {
+        noteClickedPosition = position
+        val intent = Intent(this, CreateNoteActivity::class.java)
+        intent.putExtra("isViewOrUpdate", true)
+        intent.putExtra("note", note)
+        startActivityForResult(intent, REQUEST_CODE_UPDATE_NOTE)
+    }
+
+    private fun getNotes(requestCode: Int) {
 //        @SuppressLint("StaticFieldLeak")
 //        class GetNoteTask : AsyncTask<Void, Void, List<Note>>() {
 //            override fun doInBackground(vararg p0: Void?): List<Note> {
@@ -69,12 +81,17 @@ class MainActivity : AppCompatActivity() {
             val notes = NotesDatabase.getDatabase(applicationContext).noteDao().getAllNotes()
 
             handler.post {
-                if (notesList.size == 0) {
+                if (requestCode == REQUEST_CODE_SHOW_NOTES) {
                     notesList.addAll(notes)
                     notesAdapter.notifyDataSetChanged()
-                } else {
+                } else if (requestCode == REQUEST_CODE_ADD_NOTE) {
                     notesList.add(0, notes[0])
                     notesAdapter.notifyItemInserted(0)
+                    notesRecyclerView.smoothScrollToPosition(0)
+                } else if (requestCode == REQUEST_CODE_UPDATE_NOTE) {
+                    notesList.removeAt(noteClickedPosition)
+                    notesList.add(noteClickedPosition, notes[noteClickedPosition])
+                    notesAdapter.notifyItemChanged(noteClickedPosition)
                 }
             }
         }
@@ -84,7 +101,11 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (requestCode == REQUEST_CODE_ADD_NOTE && resultCode == RESULT_OK) {
-            getNotes()
+            getNotes(REQUEST_CODE_ADD_NOTE)
+        } else if (requestCode == REQUEST_CODE_UPDATE_NOTE && resultCode == RESULT_OK) {
+            if (data != null) {
+                getNotes(REQUEST_CODE_UPDATE_NOTE)
+            }
         }
     }
 }

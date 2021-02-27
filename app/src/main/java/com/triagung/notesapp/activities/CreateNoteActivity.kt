@@ -48,9 +48,10 @@ class CreateNoteActivity : AppCompatActivity() {
 
     private lateinit var viewSubtitleIndicator: View
 
-    private var selectedNoteColor: String? = null
+    private var selectedNoteColor: String = "#333333" //Default color note
     private var selectedImagePath: String = ""
     private var dialogAddURL: AlertDialog? = null
+    private var alreadyAvailableNote: Note? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,11 +76,35 @@ class CreateNoteActivity : AppCompatActivity() {
         val imageSave = findViewById<ImageView>(R.id.imageSave)
         imageSave.setOnClickListener { saveNote() }
 
-        selectedNoteColor = "#333333"
+        if (intent.getBooleanExtra("isViewOrUpdate", false)) {
+            alreadyAvailableNote = intent.getSerializableExtra("note") as Note
+            setViewOrUpdateNote()
+        }
 
         initMiscellaneous()
-
         setSubtitleIndicatorColor()
+    }
+
+    private fun setViewOrUpdateNote() {
+        inputNoteTitle.setText(alreadyAvailableNote?.title)
+        inputNoteSubtitle.setText(alreadyAvailableNote?.subtitle)
+        inputNoteText.setText(alreadyAvailableNote?.noteText)
+        textDateTime.text = alreadyAvailableNote?.dateTime
+
+        if (alreadyAvailableNote?.imagePath != null
+            && alreadyAvailableNote?.imagePath?.trim()?.isNotEmpty()!!
+        ) {
+            imageNote.setImageBitmap(BitmapFactory.decodeFile(alreadyAvailableNote?.imagePath))
+            imageNote.visibility = View.VISIBLE
+            selectedImagePath = alreadyAvailableNote?.imagePath!!
+        }
+
+        if (alreadyAvailableNote?.webLink != null
+            && alreadyAvailableNote?.webLink?.trim()?.isEmpty()!!
+        ) {
+            textWebURL.text = alreadyAvailableNote?.webLink
+            layoutWebURL.visibility = View.VISIBLE
+        }
     }
 
     private fun saveNote() {
@@ -102,6 +127,10 @@ class CreateNoteActivity : AppCompatActivity() {
 
         if (layoutWebURL.visibility == View.VISIBLE) {
             note.webLink = textWebURL.text.toString()
+        }
+
+        if (alreadyAvailableNote != null) {
+            note.id = alreadyAvailableNote?.id!!
         }
 
 //        @SuppressLint("StaticFieldLeak")
@@ -199,6 +228,17 @@ class CreateNoteActivity : AppCompatActivity() {
             imageColor4.setImageResource(0)
             imageColor5.setImageResource(R.drawable.ic_done)
             setSubtitleIndicatorColor()
+        }
+
+        if (alreadyAvailableNote != null && alreadyAvailableNote?.color != null
+            && alreadyAvailableNote?.color?.trim()?.isNotEmpty()!!
+        ) {
+            when (alreadyAvailableNote?.color) {
+                "#FDBE3B" -> { layoutMiscellaneous.findViewById<View>(R.id.viewColor2).performClick() }
+                "#FF4842" -> { layoutMiscellaneous.findViewById<View>(R.id.viewColor3).performClick() }
+                "#3A52FC" -> { layoutMiscellaneous.findViewById<View>(R.id.viewColor4).performClick() }
+                "#000000" -> { layoutMiscellaneous.findViewById<View>(R.id.viewColor5).performClick() }
+            }
         }
 
         layoutMiscellaneous.findViewById<LinearLayout>(R.id.layoutAddImage).setOnClickListener {
