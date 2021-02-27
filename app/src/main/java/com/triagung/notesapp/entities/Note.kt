@@ -11,16 +11,16 @@ data class Note(
     val id: Int = 0,
 
     @ColumnInfo(name = "title")
-    val title: String? = null,
+    var title: String? = null,
 
     @ColumnInfo(name = "date_time")
-    val dateTime: String? = null,
+    var dateTime: String? = null,
 
     @ColumnInfo(name = "subtitle")
-    val subtitle: String? = null,
+    var subtitle: String? = null,
 
     @ColumnInfo(name = "note_text")
-    val noteText: String? = null,
+    var noteText: String? = null,
 
     @ColumnInfo(name = "image_path")
     val imagePath: String? = null,
