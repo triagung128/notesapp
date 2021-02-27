@@ -8,6 +8,7 @@
     tools:context=".activities.CreateNoteActivity">
 
     <ScrollView
+        android:id="@+id/scrollView2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginBottom="@dimen/_40sdp"
@@ -132,4 +133,6 @@
                 app:layout_constraintTop_toBottomOf="@id/inputNoteSubtitle" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
+
+    <include layout="@layout/layout_miscellaneous" />
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
