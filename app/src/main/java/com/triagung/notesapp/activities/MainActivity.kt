@@ -7,8 +7,12 @@ import android.os.Looper
 import android.util.Log
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.triagung.notesapp.R
+import com.triagung.notesapp.adapters.NotesAdapter
 import com.triagung.notesapp.database.NotesDatabase
+import com.triagung.notesapp.entities.Note
 import java.util.concurrent.Executors
 
 class MainActivity : AppCompatActivity() {
@@ -16,6 +20,11 @@ class MainActivity : AppCompatActivity() {
     companion object {
         const val REQUEST_CODE_ADD_NOTE = 1
     }
+
+    private lateinit var notesRecyclerView: RecyclerView
+    private lateinit var notesAdapter: NotesAdapter
+
+    private val notesList: ArrayList<Note> = ArrayList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,6 +37,14 @@ class MainActivity : AppCompatActivity() {
                 REQUEST_CODE_ADD_NOTE
             )
         }
+
+        notesRecyclerView = findViewById(R.id.notesRecyclerView)
+        notesRecyclerView.layoutManager = StaggeredGridLayoutManager(
+            2, StaggeredGridLayoutManager.VERTICAL
+        )
+
+        notesAdapter = NotesAdapter(notesList)
+        notesRecyclerView.adapter = notesAdapter
 
         getNotes()
     }
@@ -53,8 +70,22 @@ class MainActivity : AppCompatActivity() {
             val notes = NotesDatabase.getDatabase(applicationContext).noteDao().getAllNotes()
 
             handler.post {
-                Log.d("MY_NOTES", notes.toString())
+                if (notesList.size == 0) {
+                    notesList.addAll(notes)
+                    notesAdapter.notifyDataSetChanged()
+                } else {
+                    notesList.add(0, notes[0])
+                    notesAdapter.notifyItemInserted(0)
+                }
             }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_CODE_ADD_NOTE && resultCode == RESULT_OK) {
+            getNotes()
         }
     }
 }
