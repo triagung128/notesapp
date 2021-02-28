@@ -88,5 +88,4 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@id/textAdd"
         app:layout_constraintTop_toBottomOf="@id/inputURL" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>

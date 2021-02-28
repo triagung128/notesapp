@@ -17,7 +17,6 @@ import android.provider.MediaStore
 import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -42,17 +41,21 @@ class CreateNoteActivity : AppCompatActivity() {
     private lateinit var inputNoteTitle: EditText
     private lateinit var inputNoteSubtitle: EditText
     private lateinit var inputNoteText: EditText
-    private lateinit var textDateTime: TextView
-    private lateinit var imageNote: ImageView
-    private lateinit var textWebURL: TextView
-    private lateinit var layoutWebURL: LinearLayout
 
+    private lateinit var textDateTime: TextView
+    private lateinit var textWebURL: TextView
+
+    private lateinit var imageNote: ImageView
+
+    private lateinit var layoutWebURL: LinearLayout
     private lateinit var viewSubtitleIndicator: View
 
     private var selectedNoteColor: String = "#333333" //Default color note
     private var selectedImagePath: String = ""
+
     private var dialogAddURL: AlertDialog? = null
     private var dialogDeleteNote: AlertDialog? = null
+
     private var alreadyAvailableNote: Note? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,11 +68,15 @@ class CreateNoteActivity : AppCompatActivity() {
         inputNoteTitle = findViewById(R.id.inputNoteTitle)
         inputNoteSubtitle = findViewById(R.id.inputNoteSubtitle)
         inputNoteText = findViewById(R.id.inputNote)
+
         textDateTime = findViewById(R.id.textDateTime)
-        viewSubtitleIndicator = findViewById(R.id.viewSubtitleIndicator)
-        imageNote = findViewById(R.id.imageNote)
         textWebURL = findViewById(R.id.textWebURL)
+
+        imageNote = findViewById(R.id.imageNote)
+
         layoutWebURL = findViewById(R.id.layoutWebURL)
+
+        viewSubtitleIndicator = findViewById(R.id.viewSubtitleIndicator)
 
         textDateTime.text = SimpleDateFormat(
             "EEEE, dd MMMM yyyy HH:mm a", Locale.getDefault()
@@ -142,7 +149,7 @@ class CreateNoteActivity : AppCompatActivity() {
             Toast.makeText(this, "Note title can't be empty", Toast.LENGTH_SHORT).show()
             return
         } else if (inputNoteSubtitle.text.toString().trim().isEmpty()
-                && inputNoteText.text.toString().trim().isEmpty()) {
+            && inputNoteText.text.toString().trim().isEmpty()) {
             Toast.makeText(this, "Note can't be empty", Toast.LENGTH_SHORT).show()
             return
         }
@@ -162,23 +169,6 @@ class CreateNoteActivity : AppCompatActivity() {
         if (alreadyAvailableNote != null) {
             note.id = alreadyAvailableNote?.id!!
         }
-
-//        @SuppressLint("StaticFieldLeak")
-//        class SaveNoteTask : AsyncTask<Void, Void, Void>() {
-//            override fun doInBackground(vararg p0: Void?): Void? {
-//                NotesDatabase.getDatabase(applicationContext).noteDao().insertNote(note)
-//                return null
-//            }
-//
-//            override fun onPostExecute(result: Void?) {
-//                super.onPostExecute(result)
-//                val intent = Intent()
-//                setResult(RESULT_OK, intent)
-//                finish()
-//            }
-//        }
-//
-//        SaveNoteTask().execute()
 
         val executor = Executors.newSingleThreadExecutor()
         val handler = Handler(Looper.getMainLooper())
@@ -325,7 +315,7 @@ class CreateNoteActivity : AppCompatActivity() {
 
                     handler.post {
                         val intent = Intent()
-                        intent.putExtra("isNotDeleted", true)
+                        intent.putExtra("isNoteDeleted", true)
                         setResult(RESULT_OK, intent)
                         finish()
                     }
@@ -352,8 +342,11 @@ class CreateNoteActivity : AppCompatActivity() {
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
         if (requestCode == REQUEST_CODE_STORAGE_PERMISSION && grantResults.isNotEmpty()) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 selectImage()
@@ -365,6 +358,7 @@ class CreateNoteActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+
         if (requestCode == REQUEST_CODE_SELECT_IMAGE && resultCode == RESULT_OK) {
             if (data != null) {
                 val selectedImageUri: Uri? = data.data
@@ -375,7 +369,6 @@ class CreateNoteActivity : AppCompatActivity() {
                         imageNote.setImageBitmap(bitmap)
                         imageNote.visibility = View.VISIBLE
                         findViewById<ImageView>(R.id.imageRemoveImage).visibility = View.VISIBLE
-
                         selectedImagePath = getPathFromUri(selectedImageUri)
                     } catch (exception: Exception) {
                         Toast.makeText(this, exception.message, Toast.LENGTH_SHORT).show()
@@ -387,7 +380,10 @@ class CreateNoteActivity : AppCompatActivity() {
 
     private fun getPathFromUri(contentUri: Uri) : String {
         val filePath: String
-        val cursor: Cursor? = contentResolver.query(contentUri, null, null, null, null)
+        val cursor: Cursor? = contentResolver.query(
+            contentUri, null, null, null, null
+        )
+
         if (cursor == null) {
             filePath = contentUri.path.toString()
         } else {
@@ -396,6 +392,7 @@ class CreateNoteActivity : AppCompatActivity() {
             filePath = cursor.getString(index)
             cursor.close()
         }
+
         return filePath
     }
 

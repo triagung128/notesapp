@@ -122,7 +122,9 @@ class MainActivity : AppCompatActivity(), NotesListener {
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int, permissions: Array<out String>, grantResults: IntArray
+    ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_STORAGE_PERMISSION && grantResults.isNotEmpty()) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -135,7 +137,10 @@ class MainActivity : AppCompatActivity(), NotesListener {
 
     private fun getPathFromUri(contentUri: Uri) : String {
         val filePath: String
-        val cursor: Cursor? = contentResolver.query(contentUri, null, null, null, null)
+        val cursor: Cursor? = contentResolver.query(
+            contentUri, null, null, null, null
+        )
+
         if (cursor == null) {
             filePath = contentUri.path.toString()
         } else {
@@ -144,32 +149,21 @@ class MainActivity : AppCompatActivity(), NotesListener {
             filePath = cursor.getString(index)
             cursor.close()
         }
+
         return filePath
     }
 
     override fun onNoteClicked(note: Note, position: Int) {
         noteClickedPosition = position
+
         val intent = Intent(this, CreateNoteActivity::class.java)
         intent.putExtra("isViewOrUpdate", true)
         intent.putExtra("note", note)
-        startActivityForResult(intent, REQUEST_CODE_SELECT_IMAGE)
+
+        startActivityForResult(intent, REQUEST_CODE_UPDATE_NOTE)
     }
 
     private fun getNotes(requestCode: Int, isNoteDeleted: Boolean) {
-//        @SuppressLint("StaticFieldLeak")
-//        class GetNoteTask : AsyncTask<Void, Void, List<Note>>() {
-//            override fun doInBackground(vararg p0: Void?): List<Note> {
-//                return NotesDatabase.getDatabase(applicationContext).noteDao().getAllNotes()
-//            }
-//
-//            override fun onPostExecute(notes: List<Note>?) {
-//                super.onPostExecute(notes)
-//                Log.d("MY_NOTES", notes.toString())
-//            }
-//        }
-//
-//        GetNoteTask().execute()
-//
         val executor = Executors.newSingleThreadExecutor()
         val handler = Handler(Looper.getMainLooper())
         executor.execute {
@@ -188,6 +182,7 @@ class MainActivity : AppCompatActivity(), NotesListener {
                     }
                     REQUEST_CODE_UPDATE_NOTE -> {
                         notesList.removeAt(noteClickedPosition)
+
                         if (isNoteDeleted) {
                             notesAdapter.notifyItemRemoved(noteClickedPosition)
                         } else {
@@ -207,7 +202,7 @@ class MainActivity : AppCompatActivity(), NotesListener {
             getNotes(REQUEST_CODE_ADD_NOTE, false)
         } else if (requestCode == REQUEST_CODE_UPDATE_NOTE && resultCode == RESULT_OK) {
             if (data != null) {
-                getNotes(REQUEST_CODE_UPDATE_NOTE, data.getBooleanExtra("isNotDeleted", false))
+                getNotes(REQUEST_CODE_UPDATE_NOTE, data.getBooleanExtra("isNoteDeleted", false))
             }
         } else if (requestCode == REQUEST_CODE_SELECT_IMAGE && resultCode == RESULT_OK) {
             if (data != null) {
@@ -215,10 +210,12 @@ class MainActivity : AppCompatActivity(), NotesListener {
                 if (selectedImageUri != null) {
                     try {
                         val selectedImagePath = getPathFromUri(selectedImageUri)
+
                         val intent = Intent(applicationContext, CreateNoteActivity::class.java)
                         intent.putExtra("isFromQuickActions", true)
                         intent.putExtra("quickActionType", "image")
                         intent.putExtra("imagePath", selectedImagePath)
+
                         startActivityForResult(intent, REQUEST_CODE_ADD_NOTE)
                     } catch (exception: Exception) {
                         Toast.makeText(this, exception.message, Toast.LENGTH_SHORT).show()
@@ -252,10 +249,12 @@ class MainActivity : AppCompatActivity(), NotesListener {
                     Toast.makeText(this, "Enter valid URL", Toast.LENGTH_SHORT).show()
                 } else {
                     dialogAddURL?.dismiss()
+
                     val intent = Intent(applicationContext, CreateNoteActivity::class.java)
                     intent.putExtra("isFromQuickActions", true)
                     intent.putExtra("quickActionType", "URL")
                     intent.putExtra("URL", inputURL.text.toString())
+
                     startActivityForResult(intent, REQUEST_CODE_ADD_NOTE)
                 }
             }
