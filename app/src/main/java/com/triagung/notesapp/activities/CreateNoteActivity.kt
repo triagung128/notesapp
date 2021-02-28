@@ -95,6 +95,21 @@ class CreateNoteActivity : AppCompatActivity() {
             selectedImagePath = ""
         }
 
+        if (intent.getBooleanExtra("isFromQuickActions", false)) {
+            val type: String? = intent.getStringExtra("quickActionType")
+            if (type != null) {
+                if (type == "image") {
+                    selectedImagePath = intent.getStringExtra("imagePath")!!
+                    imageNote.setImageBitmap(BitmapFactory.decodeFile(selectedImagePath))
+                    imageNote.visibility = View.VISIBLE
+                    findViewById<ImageView>(R.id.imageRemoveImage).visibility = View.VISIBLE
+                } else if (type == "URL") {
+                    textWebURL.text = intent.getStringExtra("URL")
+                    layoutWebURL.visibility = View.VISIBLE
+                }
+            }
+        }
+
         initMiscellaneous()
         setSubtitleIndicatorColor()
     }
